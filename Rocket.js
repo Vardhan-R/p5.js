@@ -7,6 +7,7 @@ function setup() {
   a = createVector(0, 0)
   angle = 0
   maxVel = 2
+  rectMode(CENTER)
 }
 
 
@@ -38,10 +39,15 @@ function draw() {
   translate(p.x, p.y)
   rotate(angle)
   triangle(0, 0, -20, 5, -20, -5)
+  rect(-20, 3, 4, 3)
+  rect(-20, -3, 4, 3)
 
   if (keyIsDown(32)) {
     a = (0, 1)
     a = p5.Vector.fromAngle(angle)
+    fill(255, 100, 0)
+    triangle(-21, 4, -25, 3, -21, 2)
+    triangle(-21, -4, -25, -3, -21, -2)
   } else {
     a = (0, 0)
   }
