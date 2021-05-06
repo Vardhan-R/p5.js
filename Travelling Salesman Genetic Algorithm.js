@@ -1,4 +1,4 @@
-let numOfSpots, tempP1, tempE1, tempP2, tempE2, tempDist, bestDist, mutationRate, choice, temp, gen, fr, organisms
+let numOfSpots, tempP1, tempE1, tempP2, tempE2, tempDist, bestDist, mutationRate, choice, temp, gen, fr, organisms, gens
 let spots = []
 let tempArray = []
 let population = []
@@ -13,6 +13,7 @@ function setup() {
   mutationRate = 0.06
   organisms = 10
   fr = 60
+  gens = 1
   for (i = 0; i < numOfSpots; i++) {
     spots[i] = createVector(floor(random(width)), floor(random(height)))
   }
@@ -36,19 +37,21 @@ function setup() {
 
 
 function draw() {
-  background(0);
-  bestDist = findBest(allDists)
-  showPath()
-  showSpots()
-  allDists = []
-  newGen()
-  mutate()
-  for (let j = 0; j < population.length; j++) {
-    allDists.push(calcDist(population[j]))
+  for (let n = 0; n < gens; n++) {
+    background(0);
+    bestDist = findBest(allDists)
+    showPath()
+    showSpots()
+    allDists = []
+    newGen()
+    mutate()
+    for (let j = 0; j < population.length; j++) {
+      allDists.push(calcDist(population[j]))
+    }
+    fill(100, 100, 255)
+    gen++
+    text("Generation: " + gen, 1, 20)
   }
-  fill(100, 100, 255)
-  gen++
-  text("Generation: " + gen, 1, 20)
 }
 
 
@@ -84,7 +87,7 @@ function findBest(a) {
       bestDist = i
     }
   }
-  console.log(a[bestDist])
+  console.log(" " + a[bestDist])
   return (bestDist)
 }
 
