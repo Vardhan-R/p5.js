@@ -7,22 +7,38 @@ let allVel = []
 let allAcc = []
 
 let allUHS = []
+let allUSS = []
 
 
 
 function setup() {
-  createCanvas(650, 500);
+  createCanvas(500, 500);
 
   gravConst = 1
   k = 1000
   damping = 0
 
   // createParticle(m, q, r, g, b, px, py, vx, vy)
-  createParticle(1, 2, 255, 0, 0, 150, 250, 0, 0)
-  allUHS.push(new UHS(1, 300, 255, 0, 255, 200, 200))
+  // new UHS(m, q, diameter, r, g, b, px, py, vx, vy)
+  // new USS(m, q, diameter, r, g, b, px, py, vx, vy)
+
+  createParticle(1, -1, 0, 0, 255, width / 4, height / 4, 0, 1)
+  createParticle(1, -1, 255, 0, 0, width / 4, 3 * height / 4, 1, 0)
+  createParticle(1, -1, 255, 255, 0, 3 * width / 4, height / 4, 0, -1)
+  createParticle(1, -1, 0, 255, 0, 3 * width / 4, 3 * height / 4, -1, 0)
+  allUHS.push(new UHS(1, 1, 250, 255, 0, 255, width / 4, height / 4, 0, 0))
+  allUHS.push(new UHS(1, 1, 250, 255, 0, 255, width / 4, 3 * height / 4, 0, 0))
+  allUHS.push(new UHS(1, 1, 250, 255, 0, 255, 3 * width / 4, height / 4, 0, 0))
+  allUHS.push(new UHS(1, 1, 250, 255, 0, 255, 3 * width / 4, 3 * height / 4, 0, 0))
+  allUSS.push(new USS(1, 1, 250, 255, 0, 255, 100, width / 2, height / 4, 0, 0))
+  allUSS.push(new USS(1, 1, 250, 255, 0, 255, 100, width / 2, 3 * height / 4, 0, 0))
+  allUSS.push(new USS(1, 1, 250, 255, 0, 255, 100, 3 * width / 4, height / 2, 0, 0))
+  allUSS.push(new USS(1, 1, 250, 255, 0, 255, 100, width / 4, height / 2, 0, 0))
 
   stroke(255)
 }
+
+
 
 function draw() {
   translate(width / 2, height / 2)
@@ -31,10 +47,13 @@ function draw() {
   background(0);
   update()
   show()
-  damp()
   for (let a = 0; a < allUHS.length; a++) {
     allUHS[a].UHS_show()
   }
+  for (let a = 0; a < allUSS.length; a++) {
+    allUSS[a].USS_show()
+  }
+  damp()
 }
 
 
@@ -53,7 +72,8 @@ function createParticle(m, q, r, g, b, px, py, vx, vy) {
 function update() {
   // vel and acc update for all the particles
   for (let i = 0; i < allMasses.length; i++) {
-    tempAcc = createVector(0, 0)
+    tempAcc = createVector()
+    tempAccUHS = createVector()
     for (let j = 0; j < allMasses.length; j++) {
       if (allPos[i] != allPos[j]) {
         acc = k * allCharges[i] * allCharges[j] / ((dist(allPos[i].x, allPos[i].y, allPos[j].x, allPos[j].y)) ** 3) / allMasses[i]
@@ -67,13 +87,35 @@ function update() {
 
 
     for (let j = 0; j < allUHS.length; j++) {
-      if (dist(allPos[i].x, allPos[i].y, allUHS[j].px, allUHS[j].py) > allUHS.diameter / 2) {
+      if (dist(allPos[i].x, allPos[i].y, allUHS[j].px, allUHS[j].py) > allUHS[j].diameter / 2) {
         acc = k * allCharges[i] * allUHS[j].q / ((dist(allPos[i].x, allPos[i].y, allUHS[j].px, allUHS[j].py)) ** 3) / allMasses[i]
         dir = createVector(allPos[i].x - allUHS[j].px, allPos[i].y - allUHS[j].py)
         dir.mult(acc)
         tempAcc.add(dir)
+        dir.mult(allMasses[i] / allUHS[j].m)
+        tempAccUHS.add(dir)
+        // still have not done acc, vel and mvmnt for UHS
       }
     }
+
+
+
+    for (let j = 0; j < allUSS.length; j++) {
+      if (dist(allPos[i].x, allPos[i].y, allUSS[j].p.x, allUSS[j].p.y) > allUSS[j].diameter / 2) {
+        acc = k * allCharges[i] * allUSS[j].q / ((dist(allPos[i].x, allPos[i].y, allUSS[j].p.x, allUSS[j].p.y)) ** 3) / allMasses[i]
+        dir = createVector(allPos[i].x - allUSS[j].p.x, allPos[i].y - allUSS[j].p.y)
+        dir.mult(acc)
+        tempAcc.add(dir)
+      } else {
+        acc = 8 * k * allCharges[i] * allUSS[j].q / (allUSS[j].diameter ** 3) / allMasses[i]
+        dir = createVector(allPos[i].x - allUSS[j].p.x, allPos[i].y - allUSS[j].p.y)
+        dir.mult(acc)
+        tempAcc.add(dir)
+      }
+    }
+
+
+
     allVel[i].add(tempAcc)
   }
 
@@ -103,7 +145,8 @@ function damp() {
 
 
 class UHS {
-  constructor(q, diameter, r, g, b, px, py) {
+  constructor(m, q, diameter, r, g, b, px, py, vx, vy) {
+    this.m = m
     this.q = q
     this.diameter = diameter
     this.r = r
@@ -111,13 +154,37 @@ class UHS {
     this.b = b
     this.px = px
     this.py = py
+    this.vx = vx
+    this.vy = vy
   }
   
-  UHS_show(r, b, g) {
+  UHS_show() {
     push()
     noFill()
     stroke(this.r, this.g, this.b)
-    circle(200, 200, this.diameter)
+    circle(this.px, this.py, this.diameter)
+    pop()
+  }
+}
+
+
+
+class USS {
+  constructor(m, q, diameter, r, g, b, a, px, py, vx, vy) {
+    this.m = m
+    this.q = q
+    this.diameter = diameter
+    this.r = r
+    this.g = g
+    this.b = b
+    this.a = a
+    this.p = createVector(px, py)
+  }
+  
+  USS_show() {
+    push()
+    fill(this.r, this.g, this.b ,this.a)
+    circle(this.p.x, this.p.y, this.diameter)
     pop()
   }
 }
